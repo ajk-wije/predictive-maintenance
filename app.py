@@ -1,17 +1,23 @@
 import os
 import pickle
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import pandas as pd
 
-# Get the correct model path dynamically
+# Initialize Flask app
+app = Flask(__name__)
+CORS(app)  # Allow API access from any frontend
+
+# Dynamically get the model path
 model_path = os.path.join(os.path.dirname(__file__), "best_model.pkl")
 
-# Load the trained model
+# Check if model file exists before loading
+if not os.path.exists(model_path):
+    raise FileNotFoundError(f"Model file not found: {model_path}")
+
+# Load trained model
 with open(model_path, "rb") as model_file:
     best_model = pickle.load(model_file)
-
-# Define Flask app
-app = Flask(__name__)
 
 @app.route('/')
 def home():
@@ -20,11 +26,11 @@ def home():
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # Get JSON data
+        # Receive JSON data
         data = request.json
         df = pd.DataFrame(data)
 
-        # Ensure correct feature order
+        # Define expected feature order
         feature_order = [
             'Air temperature [K]', 'Process temperature [K]', 'Rotational speed [rpm]', 
             'Torque [Nm]', 'Tool wear [min]', 'Target',  
@@ -41,9 +47,9 @@ def predict():
             'torque_speed_interaction'
         ]
 
-        # Ensure data contains all required features
-        if not all(feature in df.columns for feature in feature_order):
-            missing_features = list(set(feature_order) - set(df.columns))
+        # Check for missing features
+        missing_features = [feature for feature in feature_order if feature not in df.columns]
+        if missing_features:
             return jsonify({"error": f"Missing features in input: {missing_features}"})
 
         # Reorder columns to match model training
@@ -60,4 +66,5 @@ def predict():
 
 # Run Flask app
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 10000))  # Use port 10000 or environment port
+    app.run(host='0.0.0.0', port=port, debug=True)
