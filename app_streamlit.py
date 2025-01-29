@@ -3,7 +3,9 @@ import pandas as pd
 import requests
 
 # Set API URL (make sure Flask API is running)
-API_URL = "https://predictive-maintenance-7nta.onrender.com"
+API_URL = "https://predictive-maintenance-7nta.onrender.com/predict"
+
+
 
 # Streamlit UI
 st.title("🔧 Predictive Maintenance Web App")
