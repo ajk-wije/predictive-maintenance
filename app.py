@@ -1,9 +1,12 @@
-from flask import Flask, request, jsonify
+import os
 import pickle
+from flask import Flask, request, jsonify
 import pandas as pd
 
+# Get the correct model path dynamically
+model_path = os.path.join(os.path.dirname(__file__), "best_model.pkl")
+
 # Load the trained model
-model_path = "C:/Users/angelica.ginige/Desktop/Script/predictive-maintenance/best_model.pkl"
 with open(model_path, "rb") as model_file:
     best_model = pickle.load(model_file)
 
@@ -19,11 +22,9 @@ def predict():
     try:
         # Get JSON data
         data = request.json
-
-        # Convert input into a DataFrame
         df = pd.DataFrame(data)
 
-        # Ensure correct feature order (update based on training features)
+        # Ensure correct feature order
         feature_order = [
             'Air temperature [K]', 'Process temperature [K]', 'Rotational speed [rpm]', 
             'Torque [Nm]', 'Tool wear [min]', 'Target',  
